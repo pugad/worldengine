@@ -1,0 +1,17 @@
+tmp
+manual
+docs
+appveyor
+bin
+tests
+travis.yml
+appveyor.yml
+.gitignore
+biome_classes.xlsx
+biome_colors.json
+biomes_ref.json
+CHANGELOG.md
+docker-compose.yaml
+LICENSE.txt
+MANIFEST.in
+README.md

@@ -1,5 +1,7 @@
 import sys
 from argparse import ArgumentParser
+import json
+import base64
 
 import numpy
 import os
@@ -15,6 +17,7 @@ from worldengine.model.world import World, Size, GenerationParameters
 from worldengine.plates import world_gen, generate_plates_simulation
 from worldengine.step import Step
 from worldengine.version import __version__
+
 
 try:
     from worldengine.hdf5_serialization import save_world_to_hdf5
@@ -233,7 +236,14 @@ def print_world_info(world):
     print(" has temperature    : %s" % world.has_temperature())
 
 
+def get_default_export_dir():
+    if 'DEFAULT_EXPORT_DIR' in os.environ:
+        return os.environ['DEFAULT_EXPORT_DIR']
+    else:
+        return '.'
+
 def main():
+
     parser = ArgumentParser(
         usage="usage: %(prog)s [options] [" + OPERATIONS + "]")
     parser.add_argument('OPERATOR', nargs='?')
@@ -241,7 +251,7 @@ def main():
     parser.add_argument(
         '-o', '--output-dir', dest='output_dir',
         help="generate files in DIR [default = '%(default)s']",
-        metavar="DIR", default='.')
+        metavar="DIR", default=get_default_export_dir())
     parser.add_argument(
         '-n', '--worldname', dest='world_name',
         help="set world name to STR. output is stored in a " +
@@ -253,6 +263,10 @@ def main():
                         action="store_true",
                         help="Save world file using HDF5 format. " +
                              "Default = store using protobuf format",
+                        default=False)
+    parser.add_argument('--stream-output', dest='stream_output',
+                        action="store_true",
+                        help="Output the data of all the generated maps in stdout",
                         default=False)
     parser.add_argument('-s', '--seed', dest='seed', type=int,
                         help="Use seed=N to initialize the pseudo-random " +
@@ -619,7 +633,16 @@ def main():
         raise Exception(
             'Unknown operation: valid operations are %s' % OPERATIONS)
 
-    print('...done')
+    if args.stream_output:
+
+        stream_output = {}
+        for f in os.listdir(args.output_dir):
+            with open(os.path.join(args.output_dir,f), 'rb') as g:
+                stream_output[f] = base64.b64encode(g.read()).decode('utf-8')
+
+        print('\nSTREAM_OUTPUT:\n'+json.dumps(stream_output))
+
+    print('\n**DONE**')
 
 
 def usage(error=None):
